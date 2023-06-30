@@ -87,6 +87,7 @@ man -w "$@" | while read -r MANFILE; do
 	NAME=${MANPAGE%.*}
 	SECTION=${MANPAGE##*.}
 	PDF=$CACHE/$SECTION/$NAME.$SECTION.pdf
+	[[ -n "$VERBOSE" ]] && echo "Manual page \"$NAME($SECTION)\":"
 
 	# Check if cached PDF is available and still up to date:
 	if [[ -e "$PDF" && "$PDF" -ot "$MANFILE" ]]; then
@@ -97,7 +98,7 @@ man -w "$@" | while read -r MANFILE; do
 	# if there's no cached PDF file, create one!
 	if [[ ! -r "$PDF" ]]; then
 		mkdir -p "$CACHE/$SECTION"
-		[[ -n "$VERBOSE" ]] && echo "Converting manual page to PDF ..."
+		[[ -n "$VERBOSE" ]] && echo "Converting \"$MANFILE\" to \"$PDF\" ..."
 		# shellcheck disable=SC2312,SC2086
 		if ! man -t "$MANFILE" | pstopdf $VERBOSE -i -o "$PDF" >/dev/null; then
 			echo "Failed to convert manual page to PDF!" >&2
