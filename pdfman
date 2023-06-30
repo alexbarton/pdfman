@@ -83,7 +83,7 @@ mkdir -p "$CACHE"
 # Handle arguments, manual page name(s) ...
 # shellcheck disable=SC2312
 man -w "$@" | while read -r MANFILE; do
-	MANPAGE=$(basename "$MANFILE" | sed -e 's/\.gz\$//g')
+	MANPAGE=$(basename "$MANFILE" | sed -e 's/\.gz$//g')
 	NAME=${MANPAGE%.*}
 	SECTION=${MANPAGE##*.}
 	PDF=$CACHE/$SECTION/$NAME.$SECTION.pdf
