@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+# shellcheck disable=SC2250
 #
 # pdfman - View Manual Pages as PDF Files, using pstopdf(1) and open(1)
 # Copyright (c)2010,2013,2016,2019 Barton IT-Consulting, Alexander Barton
@@ -15,7 +16,7 @@
 
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/pdfman"
 
-while [ $# -gt 0 ]; do
+while [[ $# -gt 0 ]]; do
 	case "$1" in
 		"-v")
 			# Enable verbose mode.
@@ -52,14 +53,14 @@ while [ $# -gt 0 ]; do
 done
 
 # Manual page name(s) given?
-if [ ! "$1" ]; then
+if [[ -z "$1" ]]; then
 	# Give man's wtf error ("help message"):
 	man
 	exit $?
 fi
 
 # Make sure there is a terminal available ...
-if [ ! -t 1 ]; then
+if [[ ! -t 1 ]]; then
 	man "$@"
 	exit $?
 fi
@@ -70,16 +71,17 @@ if ! command -v open >/dev/null || ! command -v pstopdf >/dev/null; then
 fi
 
 # Try to move old cache directory ...
-if [ -d "$HOME/.pdfman" ] && [ ! -d "$CACHE" ]; then
+if [[ -d "$HOME/.pdfman" && ! -d "$CACHE" ]]; then
 	echo "Moving cache folder to new location ..."
 	mv -v "$HOME/.pdfman" "$CACHE" || exit 1
 fi
 
 # Make sure that cache directory exists and is writable
 mkdir -p "$CACHE"
-[ -w "$CACHE" ] || CACHE="/tmp"
+[[ -w "$CACHE" ]] || CACHE="/tmp"
 
 # Handle arguments, manual page name(s) ...
+# shellcheck disable=SC2312
 man -w "$@" | while read -r MANFILE; do
 	MANPAGE=$(basename "$MANFILE" | sed -e 's/\.gz\$//g')
 	NAME=${MANPAGE%.*}
@@ -87,23 +89,24 @@ man -w "$@" | while read -r MANFILE; do
 	PDF=$CACHE/$SECTION/$NAME.$SECTION.pdf
 
 	# Check if cached PDF is available and still up to date:
-	if [ -e "$PDF" ] && [ "$PDF" -ot "$MANFILE" ]; then
-		[ -n "$VERBOSE" ] && echo "Deleting outdated cached PDF file ..."
+	if [[ -e "$PDF" && "$PDF" -ot "$MANFILE" ]]; then
+		[[ -n "$VERBOSE" ]] && echo "Deleting outdated cached PDF file ..."
 		rm "$PDF"
 	fi
 
 	# if there's no cached PDF file, create one!
-	if [ ! -r "$PDF" ]; then
+	if [[ ! -r "$PDF" ]]; then
 		mkdir -p "$CACHE/$SECTION"
-		[ -n "$VERBOSE" ] && echo "Converting manual page to PDF ..."
+		[[ -n "$VERBOSE" ]] && echo "Converting manual page to PDF ..."
+		# shellcheck disable=SC2312,SC2086
 		if ! man -t "$MANFILE" | pstopdf $VERBOSE -i -o "$PDF" >/dev/null; then
 			echo "Failed to convert manual page to PDF!" >&2
 			exit 1
 		fi
 	else
-		[ -n "$VERBOSE" ] && echo "Using cached PDF file ..."
+		[[ -n "$VERBOSE" ]] && echo "Using cached PDF file ..."
 	fi
 
-	[ -n "$VERBOSE" ] && echo "Opening \"$PDF\" ..."
+	[[ -n "$VERBOSE" ]] && echo "Opening \"$PDF\" ..."
 	open "$PDF"
 done
