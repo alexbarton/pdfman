@@ -1,8 +1,8 @@
 #!/bin/bash
 # shellcheck disable=SC2250
 #
-# pdfman - View Manual Pages as PDF Files, using pstopdf(1) and open(1)
-# Copyright (c)2010,2013,2016,2019 Barton IT-Consulting, Alexander Barton
+# pdfman - View UNIX manual pages as Portable Document Format (PDF) files
+# Copyright (c)2010,2013,2016,2019,2023 Barton IT-Consulting, Alexander Barton
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -52,6 +52,16 @@ while [[ $# -gt 0 ]]; do
 	shift
 done
 
+run_ps2pdf() {
+	# Ghostscript ps2pdf(1)
+	ps2pdf - "$1"
+}
+
+run_pstopdf() {
+	# Apple pstopdf(1)
+	pstopdf -i -o "$1" >/dev/null
+}
+
 # Manual page name(s) given?
 if [[ -z "$1" ]]; then
 	# Give man's wtf error ("help message"):
@@ -65,10 +75,21 @@ if [[ ! -t 1 ]]; then
 	exit $?
 fi
 # Make sure required tools are available ...
-if ! command -v open >/dev/null || ! command -v pstopdf >/dev/null; then
+if ! command -v open >/dev/null; then
 	man "$@"
 	exit $?
 fi
+
+# Detect PS-to-PDF converter to use ...
+if command -v ps2pdf >/dev/null; then
+	ps_to_pdf_function=run_ps2pdf
+elif command -v pstopdf >/dev/null; then
+	ps_to_pdf_function=run_pstopdf
+else
+	man "$@"
+	exit $?
+fi
+[[ -n "$VERBOSE" ]] && echo "Using ${ps_to_pdf_function#*_}(1) ..."
 
 # Try to move old cache directory ...
 if [[ -d "$HOME/.pdfman" && ! -d "$CACHE" ]]; then
@@ -99,8 +120,7 @@ man -w "$@" | while read -r MANFILE; do
 	if [[ ! -r "$PDF" ]]; then
 		mkdir -p "$CACHE/$SECTION"
 		[[ -n "$VERBOSE" ]] && echo "Converting \"$MANFILE\" to \"$PDF\" ..."
-		# shellcheck disable=SC2312,SC2086
-		if ! man -t "$MANFILE" | pstopdf $VERBOSE -i -o "$PDF" >/dev/null; then
+		if ! man -t "$MANFILE" | $ps_to_pdf_function "$PDF"; then
 			echo "Failed to convert manual page to PDF!" >&2
 			exit 1
 		fi
