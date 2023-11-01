@@ -74,8 +74,13 @@ if [[ ! -t 1 ]]; then
 	man "$@"
 	exit $?
 fi
-# Make sure required tools are available ...
-if ! command -v open >/dev/null; then
+
+# Detect "opener" to use ...
+if command -v xdg-open >/dev/null; then
+	open_command=xdg-open
+elif command -v open >/dev/null; then
+	open_command=open
+else
 	man "$@"
 	exit $?
 fi
@@ -89,7 +94,8 @@ else
 	man "$@"
 	exit $?
 fi
-[[ -n "$VERBOSE" ]] && echo "Using ${ps_to_pdf_function#*_}(1) ..."
+
+[[ -n "$VERBOSE" ]] && echo "Using ${ps_to_pdf_function#*_}(1) and ${open_command}(1) ..."
 
 # Try to move old cache directory ...
 if [[ -d "$HOME/.pdfman" && ! -d "$CACHE" ]]; then
@@ -129,5 +135,5 @@ man -w "$@" | while read -r MANFILE; do
 	fi
 
 	[[ -n "$VERBOSE" ]] && echo "Opening \"$PDF\" ..."
-	open "$PDF"
+	$open_command "$PDF"
 done
