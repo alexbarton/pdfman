@@ -48,7 +48,7 @@ while [[ $# -gt 0 ]]; do
 			;;
 		"--version")
 			echo "pdfman, version 1" >&2
-			man --version
+			man --version 2>/dev/null
 			exit 2
 			;;
 		-*)
