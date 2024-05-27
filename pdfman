@@ -28,12 +28,17 @@ while [[ $# -gt 0 ]]; do
 			man "$@"
 			exit $?
 			;;
-		"--help")
-			echo "Usage: pdfman [-v] [-T] [<section>] <topic> ..." >&2
-			echo "       pdfman <man(1) options> <arguments> ..." >&2
-			echo "       pdfman {--help|--version>}" >&2
+		"--help"|"-h")
+			echo "Usage:" >&2
+			echo " $0 [-v] [<section>] <topic> ..." >&2
+			echo " $0 -T [<section>] <topic> ..." >&2
+			echo " $0 <man(1) options> <arguments> ..." >&2
+			echo " $0 {-h|--help|--version>}" >&2
 			echo >&2
-			man --help
+			echo "  -T   Always use the man(1) command."
+			echo "  -v   Enable verbose status messages." >&2
+			echo >&2
+			man -h >&2
 			exit 2
 			;;
 		"--version")
