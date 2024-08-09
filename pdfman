@@ -2,7 +2,7 @@
 # shellcheck disable=SC2250
 #
 # pdfman - View UNIX manual pages as Portable Document Format (PDF) files
-# Copyright (c)2010,2013,2016,2019,2023 Barton IT-Consulting, Alexander Barton
+# Copyright (c)2010,2013,2016,2019,2023,2024 Barton IT-Consulting, Alexander Barton
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,10 @@
 # See the GNU General Public License for more details.
 #
 
-CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/pdfman"
+eval "$(locale || true)"
+
+CACHE_D="${XDG_CACHE_HOME:-$HOME/.cache}/pdfman"
+CACHE="${CACHE_D}/${LC_MESSAGES-${LANG-C}}"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -112,6 +115,13 @@ fi
 if [[ -d "$HOME/.pdfman" && ! -d "$CACHE" ]]; then
 	echo "Moving cache folder to new location ..."
 	mv -v "$HOME/.pdfman" "$CACHE" || exit 1
+fi
+
+# Try to migrate non-localized cache directories ...
+if ls -1d "$CACHE_D/"[123456789n] >/dev/null 2>&1 && [[ ! -d "$CACHE" ]]; then
+	echo "Migrating non-localized cache directories ..."
+	mkdir -p "$CACHE"
+	mv -v "$CACHE_D"/[123456789n] "$CACHE" || exit 1
 fi
 
 # Make sure that cache directory exists and is writable
